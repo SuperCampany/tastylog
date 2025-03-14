@@ -1,0 +1,180 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create CloudWatch Alarm Metrix.
+
+## ::PARAMETERS::
+## Template parameters to be configured by user
+Parameters:
+  stackSystem:
+    Type: String
+    Description: Specify the sub system name abbreviation.
+    Default: ecms
+    MinLength: 4
+    MaxLength: 4
+
+  stackNameSpace:
+    Type: String
+    Description: Specify the namespace of the CloudWatch metric
+
+  stackMetricName:
+    Type: String
+    Description: Specify the name of the CloudWatch metric to monitor
+
+  stackDimensionsName:
+    Type: String
+    Description: Specify the name of dimensions
+
+  stackDimensionsValue:
+    Type: String
+    Description: Specify the value of dimensions
+
+  stackStatistic:
+    Type: String
+    Description: Specify the statistic to apply to the metric
+    AllowedValues: ['Average', 'Sum', 'Minimum', 'Maximum']
+    Default: Average
+
+  stackExtendedStatistic:
+    Type: String
+    Description: Specify the percentile statistic for the metric
+
+  stackEvaluateLowSampleCountPercentile:
+    Type: String
+    Description: Specify the used only for alarms based on percentiles
+    AllowedValues: ['evaluate', 'ignore']
+    Default: ignore
+
+  stackPeriod:
+    Type: Number
+    Description: Specify the period, in seconds, over which the statistic is applied.
+
+  stackComparisonOperator:
+    Type: String
+    Description: The arithmetic operation to use when comparing the specified statistic and threshold.
+    AllowedValues: ['GreaterThanThreshold', 'LessThanThreshold', 'GreaterThanOrEqualToThreshold', 'LessThanOrEqualToThreshold']
+    Default: 'GreaterThanThreshold'
+
+  stackThreshold:
+    Type: Number
+    Description: Specify the value against which the specified statistic is compared.
+
+  stackUnit:
+    Type: String
+    Description: Specify the unit for the metric.
+    AllowedValues: 
+      - Bits
+      - Bits/Second
+      - Bytes
+      - Bytes/Second
+      - Count
+      - Count/Second
+      - Gigabits
+      - Gigabits/Second
+      - Gigabytes
+      - Gigabytes/Second
+      - Kilobits
+      - Kilobits/Second
+      - Kilobytes
+      - Kilobytes/Second
+      - Megabits
+      - Megabits/Second
+      - Megabytes
+      - Megabytes/Second
+      - Microseconds
+      - Milliseconds
+      - Percent
+      - Seconds
+      - Terabits
+      - Terabits/Second
+      - Terabytes
+      - Terabytes/Second
+      - None
+    Default: None
+
+  stackDatapointsToAlarm:
+    Type: Number
+    Description: Specify the number of datapoints that must be breaching to trigger the alarm.
+    Default: 1
+
+  stackEvaluationPeriods:
+    Type: Number
+    Description: Specify the number of periods over which data is compared to the specified threshold.
+    Default: 1
+
+  stackAlarmActions:
+    Type: String
+    Description: Specify the Put Metric Alarm.
+
+## ::METADATA::
+## CloudFormation parameter UI definitions
+Metadata:
+  "AWS::CloudFormation::Interface":
+    ParameterGroups:
+      - Label:
+          default: System & Environment Configuration
+        Parameters:
+          - stackSystem
+      - Label:
+          default: Metrics & Statistics Configuration
+        Parameters:
+          - stackNameSpace
+          - stackMetricName
+          - stackDimensionsName
+          - stackDimensionsValue
+          - stackStatistic
+          - stackExtendedStatistic
+          - stackEvaluateLowSampleCountPercentile
+          - stackPeriod
+      - Label:
+          default: Conditions Configuration
+        Parameters:
+          - stackComparisonOperator
+          - stackThreshold
+          - stackUnit
+          - stackDatapointsToAlarm
+          - stackEvaluationPeriods
+      - Label:
+          default: Alarm Actions Configuration
+        Parameters:
+          - stackAlarmActions
+
+## ::CONDITIONS::
+## Determines if we're generating regional or global resources
+Conditions:
+  UseExtendedStatistic: !Not [!Equals [!Ref stackExtendedStatistic, '']]
+
+## ::RESOURCES::
+## Resources used in this solution
+Resources:
+  CloudWatchAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub '${stackSystem}-Alarm-${stackMetricName}'
+      AlarmDescription: !Sub 'Alarm for ${stackMetricName} exceeding threshold'
+      AlarmActions: 
+        - !Ref stackAlarmActions
+      Namespace: !Ref stackNameSpace
+      MetricName: !Ref stackMetricName
+      Dimensions:
+        - Name: !Ref stackDimensionsName
+          Value: !Ref stackDimensionsValue
+      Statistic: !If 
+        - UseExtendedStatistic
+        - !Ref "AWS::NoValue"
+        - !Ref stackStatistic
+      ExtendedStatistic: !If 
+        - UseExtendedStatistic
+        - !Ref stackExtendedStatistic
+        - !Ref "AWS::NoValue"
+      EvaluateLowSampleCountPercentile: !If
+        - UseExtendedStatistic
+        - !Ref stackEvaluateLowSampleCountPercentile
+        - !Ref "AWS::NoValue"
+      Period: !Ref stackPeriod
+      ComparisonOperator: !Ref stackComparisonOperator
+      Threshold: !Ref stackThreshold
+      Unit: !Ref stackUnit
+      DatapointsToAlarm: !Ref stackDatapointsToAlarm
+      EvaluationPeriods: !Ref stackEvaluationPeriods
+      Tags:
+        - Key: Name
+          Value: !Sub "${stackSystem}-Alarm-${stackMetricName}"
