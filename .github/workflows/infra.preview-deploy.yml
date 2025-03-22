@@ -19,5 +19,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-        echo "Hellow World"
-
+        echo "Hello World"
