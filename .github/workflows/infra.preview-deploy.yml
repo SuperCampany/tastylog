@@ -13,13 +13,13 @@ permissions:
   id-token: write
   contents: read
 
-  env:
-    TF_VERSION: 1.2.8
+env:
+  TF_VERSION: 1.2.8
 
-  defaults:
-    run:
-      shell: bash
-      working-directory: "10_infra/"
+defaults:
+  run:
+    shell: bash
+    working-directory: "10_infra/"
 
 jobs:
   preview:
@@ -32,4 +32,3 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{  env.TF_VERSION  }}
-          
