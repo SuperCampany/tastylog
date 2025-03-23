@@ -17,7 +17,6 @@ env:
   AWS_REGION: ap-northeast-1
   TF_VERSION: 1.2.8
 
-
 defaults:
   run:
     shell: bash
@@ -45,3 +44,6 @@ jobs:
       - name: Terraform init
         run: |
           terraform init -no-color
+      - name: Terraform Validate
+        run: |
+          terraform validate -no-color
