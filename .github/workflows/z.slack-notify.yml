@@ -1,10 +1,10 @@
 name: "Z Slack Notify"
 
 on:
-	workflow_dispatch:
+  workflow_dispatch:
 
 jobs:
-	notify:
+  notify:
     name: Slack notify
     runs-on: ubuntu-latest
     steps: 
@@ -13,8 +13,8 @@ jobs:
         with:
           method: chat.postMessage
           token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel: ${{ secrets.SLACK_CHANNEL_ID }}
           payload: |
-            channel: ${{ secrets.SLACK_CHANNEL_ID }}
             {
               "attachments": [
                 {
@@ -37,4 +37,4 @@ jobs:
                   ]
                 }
               ]
-            }      
+            }
