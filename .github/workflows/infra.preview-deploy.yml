@@ -107,6 +107,7 @@ jobs:
         run: |
           terraform init -no-color
       - name: Terraform apply
+        id: apply
         run: |
           terraform apply \
             -var 'project=${{  env.TF_PROJECT  }}' \
@@ -116,3 +117,23 @@ jobs:
             -input=false \
             -no-color \
             -auto-approve
+      - name: Slack Notify
+        if: always()
+        uses: slackapi/slack-github-action@v2.0.0
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.SLACK_CHANNEL_ID }}
+            text: "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+            type: home
+            blocks:
+              - type: header
+                text:
+                  type: plain_text
+                  text: "runnner finished: ${{  steps.apply.outcome  }}"
+                  emoji: true
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: "${{  github.server_url  }}/${{  github.repository  }}/actions/runs/${{  github.run_id  }}"
